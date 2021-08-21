@@ -1,0 +1,13 @@
+server:
+  servlet:
+    context-path: /api
+
+foreflight-api:
+  base-url: https://qa.foreflight.com
+  airport:
+    endpoint: airport
+    credentials:
+      username: ff-interview
+      password: @-*KzU.*dtP9dkoE7PryL2ojY!uDV.6JJGC9
+  weather:
+    endpoint: weather/report
