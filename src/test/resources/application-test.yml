@@ -1,0 +1,13 @@
+server:
+  servlet:
+    context-path: /api
+
+foreflight-api:
+  base-url: https://domain.com
+  airport:
+    endpoint: /airport
+    credentials:
+      username: ff-interview
+      password: 'abc123'
+  weather:
+    endpoint: /weather/report
