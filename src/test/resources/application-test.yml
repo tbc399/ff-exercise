@@ -5,7 +5,7 @@ server:
 foreflight-api:
   base-url: https://domain.com
   airport:
-    endpoint: /airport
+    endpoint: /airports
     credentials:
       username: ff-interview
       password: 'abc123'

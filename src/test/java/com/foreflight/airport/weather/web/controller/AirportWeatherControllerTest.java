@@ -2,6 +2,7 @@ package com.foreflight.airport.weather.web.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.foreflight.airport.weather.service.AirportWeatherService;
+import com.foreflight.airport.weather.service.ForeFlightApiService;
 import com.foreflight.airport.weather.web.dto.Airport;
 import com.foreflight.airport.weather.web.dto.WeatherReport;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,8 @@ import static org.mockito.ArgumentMatchers.contains;
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(controllers = AirportWeatherController.class)
 @Import({
-    AirportWeatherService.class
+    AirportWeatherService.class,
+    ForeFlightApiService.class
 })
 @ActiveProfiles("test")
 public class AirportWeatherControllerTest {
@@ -113,7 +115,7 @@ public class AirportWeatherControllerTest {
 
         Mockito.when(
             client.getForEntity(
-                contains("/airport/kbos"),
+                contains("/airports/kbos"),
                 eq(Airport.class)
             )
         ).thenReturn(new ResponseEntity<>(airport, HttpStatus.OK));
@@ -268,7 +270,7 @@ public class AirportWeatherControllerTest {
 
         Mockito.when(
             client.getForEntity(
-                contains("/airport/kbos"),
+                contains("/airports/kbos"),
                 eq(Airport.class)
             )
         ).thenReturn(new ResponseEntity<>(airportKbos, HttpStatus.OK));
@@ -289,7 +291,7 @@ public class AirportWeatherControllerTest {
 
         Mockito.when(
             client.getForEntity(
-                contains("/airport/kaus"),
+                contains("/airports/kaus"),
                 eq(Airport.class)
             )
         ).thenReturn(new ResponseEntity<>(airportKaus, HttpStatus.OK));
@@ -414,7 +416,7 @@ public class AirportWeatherControllerTest {
 
         Mockito.when(
             client.getForEntity(
-                contains("/airport/kbos"),
+                contains("/airports/kbos"),
                 eq(Airport.class)
             )
         ).thenReturn(new ResponseEntity<>(airport, HttpStatus.OK));
@@ -460,6 +462,17 @@ public class AirportWeatherControllerTest {
             )
         );
 
+        Mockito.when(
+            client.getForEntity(
+                contains("/airports"),
+                eq(Airport.class)
+            )
+        ).thenThrow(
+            HttpClientErrorException.create(
+                HttpStatus.NOT_FOUND, null, null, null, null
+            )
+        );
+
         mvc.perform(get("/airports/weather").param("id", "nonsense"))
             .andExpect(status().isNotFound());
 
@@ -467,6 +480,17 @@ public class AirportWeatherControllerTest {
 
     @Test
     public void invalidIdentifierInputThroughPath() throws Exception {
+
+        Mockito.when(
+            client.getForEntity(
+                contains("/airports"),
+                eq(Airport.class)
+            )
+        ).thenThrow(
+            HttpClientErrorException.create(
+                HttpStatus.NOT_FOUND, null, null, null, null
+            )
+        );
 
         Mockito.when(
             client.getForEntity(

@@ -4,14 +4,8 @@ import com.foreflight.airport.weather.util.Conversions;
 import com.foreflight.airport.weather.web.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,25 +13,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
+// TODO: add more stuff to existing tests here to cover cloud coverage and period offsets
 @Service
 public class AirportWeatherService {
 
     private static final Logger logger = LoggerFactory.getLogger(AirportWeatherService.class);
 
-    private final RestTemplate client;
-    private final String airportEndpoint;
-    private final String weatherEndpoint;
+    private final ForeFlightApiService foreFlightApiService;
 
-    public AirportWeatherService(
-            @Qualifier("foreflightClient") RestTemplate client,
-            @Value("${foreflight-api.airport.endpoint}") String airportEndpoint,
-            @Value("${foreflight-api.weather.endpoint}") String weatherEndpoint) {
-
-        this.client = client;
-        this.airportEndpoint = airportEndpoint;
-        this.weatherEndpoint = weatherEndpoint;
-
+    public AirportWeatherService(ForeFlightApiService foreFlightApiService) {
+        this.foreFlightApiService = foreFlightApiService;
     }
 
     public List<AirportWeather> getAirportWeather(List<String> airportIds) {
@@ -47,32 +32,13 @@ public class AirportWeatherService {
         // TODO: maybe replace with stream
         for (String id : airportIds) {
 
-            // TODO: move these rest calls out to their own ForeFlightApi service?
-            WeatherReport weatherReport;
-            try {
-                ResponseEntity<WeatherReport> weatherReportResponse = this.client.getForEntity(
-                    Paths.get(this.weatherEndpoint, id).toString(),
-                    WeatherReport.class
-                );
-                weatherReport = weatherReportResponse.getBody();
-            } catch (HttpClientErrorException.NotFound exception) {
-                logger.info(String.format("could not find weather report for \"%s\"", id));
-                continue;
-            }
+            Airport airport = foreFlightApiService.getAirport(id);
+            WeatherReport weatherReport = foreFlightApiService.getWeatherReport(id);
 
-            Airport airport;
-            try {
-                ResponseEntity<Airport> airportResponse = this.client.getForEntity(
-                    Paths.get(this.airportEndpoint, id).toString(),
-                    Airport.class
-                );
-                airport = airportResponse.getBody();
-            } catch (HttpClientErrorException.NotFound exception) {
-                logger.info(String.format("could not find airport for \"%s\"", id));
-                continue;
+            if (airport != null && weatherReport != null) {
+                logger.info(String.format("building airport weather for \"%s\"", id));
+                airportWeather.add(combine(airport, weatherReport));
             }
-
-            airportWeather.add(combine(airport, weatherReport));
 
         }
 
@@ -111,6 +77,17 @@ public class AirportWeatherService {
             ))
             .collect(Collectors.toList());
 
+        AirportWeather.Current airportWeatherCurrent = current == null ? null : new AirportWeather.Current(
+            current.getTempC() != null ? Conversions.celsiusToFahrenheit(current.getTempC()) : null,
+            current.getRelativeHumidity(),
+            maxCloudCoverage(current.getCloudLayers()),
+            current.getVisibility().getDistanceSm(),
+            new AirportWeather.CurrentWind(
+                Conversions.knotsToMph(current.getWind().getSpeedKts()),
+                Conversions.degreesToCardinal(current.getWind().getDirection())
+            )
+        );
+
         return new AirportWeather(
             airport.getIcao(),
             airport.getName(),
@@ -118,16 +95,7 @@ public class AirportWeatherService {
             airport.getLatitude(),
             airport.getLongitude(),
             new AirportWeather.Weather(
-                new AirportWeather.Current(
-                    Conversions.celsiusToFahrenheit(current.getTempC()),
-                    current.getRelativeHumidity(),
-                    maxCloudCoverage(current.getCloudLayers()),
-                    current.getVisibility().getDistanceSm(),
-                    new AirportWeather.CurrentWind(
-                        Conversions.knotsToMph(current.getWind().getSpeedKts()),
-                        Conversions.degreesToCardinal(current.getWind().getDirection())
-                    )
-                ),
+                airportWeatherCurrent,
                 forecastWeather
             )
         );
