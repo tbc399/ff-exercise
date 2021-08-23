@@ -10,21 +10,17 @@ import org.springframework.web.client.RestTemplate;
 public class WebConfiguration {
 
     @Bean
-    public RestTemplate weatherClient() {
-        return new RestTemplateBuilder()
-            .defaultHeader("ff-coding-exercise", "1")
-            .build();
-    }
-
-    @Bean
-    public RestTemplate airportClient(
+    public RestTemplate foreflightClient(
             @Value("${foreflight-api.airport.credentials.username}") String username,
-            @Value("${foreflight-api.airport.credentials.username}") String password) {
+            @Value("${foreflight-api.airport.credentials.password}") String password,
+            @Value("${foreflight-api.base-url}") String url) {
+
         return new RestTemplateBuilder()
             .basicAuthentication(username, password)
             .defaultHeader("ff-coding-exercise", "1")
-            .rootUri()
+            .rootUri(url)
             .build();
+
     }
 
 }

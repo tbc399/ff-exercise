@@ -1,39 +1,45 @@
 [
   {
-    "identifier": "kaus",
+    "id": "kaus",
     "name":"Airport name",
     "available_runways": [
-      "asdasdf",
-      "asdfasdf"
+      {
+        "id": "rw1",
+        "name": "Name1"
+      },
+      {
+        "id": "rw2",
+        "name": "Name2"
+      }
     ],
     "latitude": 23.00034,
     "longitude": 23.0034,
     "weather": {
       "current": {
-        "temperature": 75,
+        "temperature": 75.0,
         "relative_humidity": 45,
-        "cloud_coverage_summary": "This is a summary of the cloud coverage",
-        "visibility": 6,
+        "cloud_coverage": "This is a summary of the cloud coverage",
+        "visibility": 6.1,
         "wind": {
-          "speed": 12,
-          "direction": 34
+          "speed": 12.4,
+          "direction": "NNW"
         }
       },
       "forecast": [
         {
           "period_offset": "23:34",
-          "temperature": 87,
+          "temperature": 87.0,
           "wind": {
-            "speed": 13,
-            "direction": 45.00987
+            "speed": 13.123,
+            "direction": 45
           }
         },
         {
           "period_offset": "23:34",
-          "temperature": 87,
+          "temperature": 87.0,
           "wind": {
-            "speed": 13,
-            "direction": 45.00987
+            "speed": 13.345,
+            "direction": 270
           }
         }
       ]
