@@ -3,12 +3,12 @@
 I've build a simple maven Spring Boot API that exposes two endpoints.
 
 ```
-GET /api/airports/{id}/weather`
+GET /api/airports/{id}/weather
 ```
 This will return a single JSON object for the given airport id.
 
 ```
-GET /api/airports/weather?id={id}`
+GET /api/airports/weather?id={id}
 ```
 This endpoint is similar except that it can handle a csv list of airport 
 ids and will return a corresponding list of JSON objects.
