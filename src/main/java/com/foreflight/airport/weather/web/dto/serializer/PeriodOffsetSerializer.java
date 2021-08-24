@@ -11,8 +11,9 @@ public class PeriodOffsetSerializer extends JsonSerializer<Duration> {
 
     @Override
     public void serialize(Duration duration, JsonGenerator generator, SerializerProvider provider) throws IOException {
+        long durationInMinutes = duration.toMinutes();
         generator.writeString(
-            String.format("%02d:%02d", duration.toHoursPart(), duration.toMinutesPart())
+            String.format("%02d:%02d", durationInMinutes / 60, durationInMinutes % 60)
         );
     }
 

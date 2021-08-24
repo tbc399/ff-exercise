@@ -508,4 +508,276 @@ public class AirportWeatherControllerTest {
 
     }
 
+    @Test
+    public void getMaxCloudCoverageOVC() throws Exception {
+
+        WeatherReport weatherReport = mapper.readValue(
+            "{" +
+                "\"report\": {" +
+                    "\"conditions\": {" +
+                        "\"tempC\": 34.0," +
+                        "\"relativeHumidity\": 84," +
+                        "\"cloudLayers\": [" +
+                            "{\"coverage\": \"few\"}," +
+                            "{\"coverage\": \"bkn\"}," +
+                            "{\"coverage\": \"clr\"}," +
+                            "{\"coverage\": \"ovc\"}," +
+                            "{\"coverage\": \"sct\"}," +
+                            "{\"coverage\": \"skc\"}," +
+                            "{\"coverage\": \"vv\"}" +
+                        "]," +
+                        "\"visibility\": {" +
+                            "\"distanceSm\": 2.0" +
+                        "}," +
+                        "\"wind\": {" +
+                            "\"speedKts\": 21.0," +
+                            "\"direction\": 47" +
+                        "}" +
+                    "}," +
+                    "\"forecast\": {" +
+                        "\"period\": {\"dateStart\": \"2021-08-22T14:14:00+0000\"}," +
+                        "\"conditions\": [" +
+                            "{}," +
+                            "{" +
+                                "\"wind\": {" +
+                                    "\"speedKts\": 5.0," +
+                                    "\"direction\": 14" +
+                                "}," +
+                                "\"period\": {\"dateStart\": \"2021-08-22T14:17:00+0000\"}" +
+                            "}," +
+                            "{" +
+                                "\"wind\": {" +
+                                    "\"speedKts\": 11.0," +
+                                    "\"direction\": 12" +
+                                "}," +
+                                "\"period\": {\"dateStart\": \"2021-08-25T17:32:00+0000\"}" +
+                            "}" +
+                        "]" +
+                    "}" +
+                "}" +
+            "}",
+            WeatherReport.class
+        );
+
+        Mockito.when(
+            client.getForEntity(
+                contains("/weather/report/kbos"),
+                eq(WeatherReport.class)
+            )
+        ).thenReturn(new ResponseEntity<>(weatherReport, HttpStatus.OK));
+
+        Airport airport = mapper.readValue(
+            "{" +
+                "\"icao\": \"KBOS\"," +
+                "\"name\": \"General Edward Lawrence Logan International\"," +
+                "\"longitude\": -71.0012857346623," +
+                "\"latitude\": 23.0012857346623," +
+                "\"runways\": [" +
+                    "{\"ident\": \"15L-33R\", \"name\": \"15L\"}," +
+                    "{\"ident\": \"15R-33L\", \"name\": \"15R\"}" +
+                "]" +
+            "}",
+            Airport.class
+        );
+
+        Mockito.when(
+            client.getForEntity(
+                contains("/airports/kbos"),
+                eq(Airport.class)
+            )
+        ).thenReturn(new ResponseEntity<>(airport, HttpStatus.OK));
+
+        mvc.perform(get("/airports/weather").param("id", "kbos"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("[0].id").value("KBOS"))
+            .andExpect(jsonPath("[0].name").value("General Edward Lawrence Logan International"))
+            .andExpect(jsonPath("[0].runways[0].id").value("15L-33R"))
+            .andExpect(jsonPath("[0].runways[0].name").value("15L"))
+            .andExpect(jsonPath("[0].runways[1].id").value("15R-33L"))
+            .andExpect(jsonPath("[0].runways[1].name").value("15R"))
+            .andExpect(jsonPath("[0].latitude").value(23.0012857346623))
+            .andExpect(jsonPath("[0].longitude").value(-71.0012857346623))
+            .andExpect(jsonPath("[0].weather.current.temperature").value(93.2))
+            .andExpect(jsonPath("[0].weather.current.relative_humidity").value(84))
+            .andExpect(jsonPath("[0].weather.current.cloud_coverage").value("ovc"))
+            .andExpect(jsonPath("[0].weather.current.visibility").value(2.0))
+            .andExpect(jsonPath("[0].weather.current.wind.speed").value(24.2))
+            .andExpect(jsonPath("[0].weather.current.wind.direction").value("NE"))
+            .andExpect(jsonPath("[0].weather.forecast[0].period_offset").value("00:03"))
+            .andExpect(jsonPath("[0].weather.forecast[0].temperature").isEmpty())
+            .andExpect(jsonPath("[0].weather.forecast[0].wind.speed").value(5.8))
+            .andExpect(jsonPath("[0].weather.forecast[0].wind.direction").value(14))
+            .andExpect(jsonPath("[0].weather.forecast[1].period_offset").value("75:18"))
+            .andExpect(jsonPath("[0].weather.forecast[1].temperature").isEmpty())
+            .andExpect(jsonPath("[0].weather.forecast[1].wind.speed").value(12.7))
+            .andExpect(jsonPath("[0].weather.forecast[1].wind.direction").value(12));
+
+    }
+
+    @Test
+    public void onlyOneForecastConditionNode() throws Exception {
+
+        WeatherReport weatherReport = mapper.readValue(
+            "{" +
+                "\"report\": {" +
+                    "\"conditions\": {" +
+                        "\"tempC\": 34.0," +
+                        "\"relativeHumidity\": 84," +
+                        "\"cloudLayers\": [" +
+                            "{\"coverage\": \"few\"}," +
+                            "{\"coverage\": \"bkn\"}," +
+                            "{\"coverage\": \"clr\"}," +
+                            "{\"coverage\": \"ovc\"}," +
+                            "{\"coverage\": \"sct\"}," +
+                            "{\"coverage\": \"skc\"}," +
+                            "{\"coverage\": \"vv\"}" +
+                        "]," +
+                        "\"visibility\": {" +
+                            "\"distanceSm\": 2.0" +
+                        "}," +
+                        "\"wind\": {" +
+                            "\"speedKts\": 21.0," +
+                            "\"direction\": 47" +
+                        "}" +
+                    "}," +
+                    "\"forecast\": {" +
+                        "\"period\": {\"dateStart\": \"2021-08-22T14:14:00+0000\"}," +
+                        "\"conditions\": [" +
+                            "{" +
+                                "\"wind\": {" +
+                                    "\"speedKts\": 5.0," +
+                                    "\"direction\": 14" +
+                                "}," +
+                                "\"period\": {\"dateStart\": \"2021-08-22T14:17:00+0000\"}" +
+                            "}," +
+                            "{" +
+                                "\"wind\": {" +
+                                    "\"speedKts\": 11.0," +
+                                    "\"direction\": 12" +
+                                "}," +
+                                "\"period\": {\"dateStart\": \"2021-08-25T17:32:00+0000\"}" +
+                            "}" +
+                        "]" +
+                    "}" +
+                "}" +
+            "}",
+            WeatherReport.class
+        );
+
+        Mockito.when(
+            client.getForEntity(
+                contains("/weather/report/kbos"),
+                eq(WeatherReport.class)
+            )
+        ).thenReturn(new ResponseEntity<>(weatherReport, HttpStatus.OK));
+
+        Airport airport = mapper.readValue(
+            "{" +
+                "\"icao\": \"KBOS\"," +
+                "\"name\": \"General Edward Lawrence Logan International\"," +
+                "\"longitude\": -71.0012857346623," +
+                "\"latitude\": 23.0012857346623," +
+                "\"runways\": [" +
+                    "{\"ident\": \"15L-33R\", \"name\": \"15L\"}," +
+                    "{\"ident\": \"15R-33L\", \"name\": \"15R\"}" +
+                "]" +
+            "}",
+            Airport.class
+        );
+
+        Mockito.when(
+            client.getForEntity(
+                contains("/airports/kbos"),
+                eq(Airport.class)
+            )
+        ).thenReturn(new ResponseEntity<>(airport, HttpStatus.OK));
+
+        mvc.perform(get("/airports/weather").param("id", "kbos"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("[0].id").value("KBOS"))
+            .andExpect(jsonPath("[0].weather.forecast[0].period_offset").value("75:18"))
+            .andExpect(jsonPath("[0].weather.forecast[0].temperature").isEmpty())
+            .andExpect(jsonPath("[0].weather.forecast[0].wind.speed").value(12.7))
+            .andExpect(jsonPath("[0].weather.forecast[0].wind.direction").value(12));
+
+    }
+
+    @Test
+    public void noForecastConditionNodes() throws Exception {
+
+        WeatherReport weatherReport = mapper.readValue(
+            "{" +
+                "\"report\": {" +
+                    "\"conditions\": {" +
+                        "\"tempC\": 34.0," +
+                        "\"relativeHumidity\": 84," +
+                        "\"cloudLayers\": [" +
+                            "{\"coverage\": \"few\"}," +
+                            "{\"coverage\": \"bkn\"}," +
+                            "{\"coverage\": \"clr\"}," +
+                            "{\"coverage\": \"ovc\"}," +
+                            "{\"coverage\": \"sct\"}," +
+                            "{\"coverage\": \"skc\"}," +
+                            "{\"coverage\": \"vv\"}" +
+                        "]," +
+                        "\"visibility\": {" +
+                            "\"distanceSm\": 2.0" +
+                        "}," +
+                        "\"wind\": {" +
+                            "\"speedKts\": 21.0," +
+                            "\"direction\": 47" +
+                        "}" +
+                    "}," +
+                    "\"forecast\": {" +
+                        "\"period\": {\"dateStart\": \"2021-08-22T14:14:00+0000\"}," +
+                        "\"conditions\": [" +
+                            "{" +
+                                "\"wind\": {" +
+                                    "\"speedKts\": 5.0," +
+                                    "\"direction\": 14" +
+                                "}," +
+                                "\"period\": {\"dateStart\": \"2021-08-22T14:17:00+0000\"}" +
+                            "}" +
+                        "]" +
+                    "}" +
+                "}" +
+            "}",
+            WeatherReport.class
+        );
+
+        Mockito.when(
+            client.getForEntity(
+                contains("/weather/report/kbos"),
+                eq(WeatherReport.class)
+            )
+        ).thenReturn(new ResponseEntity<>(weatherReport, HttpStatus.OK));
+
+        Airport airport = mapper.readValue(
+            "{" +
+                "\"icao\": \"KBOS\"," +
+                "\"name\": \"General Edward Lawrence Logan International\"," +
+                "\"longitude\": -71.0012857346623," +
+                "\"latitude\": 23.0012857346623," +
+                "\"runways\": [" +
+                    "{\"ident\": \"15L-33R\", \"name\": \"15L\"}," +
+                    "{\"ident\": \"15R-33L\", \"name\": \"15R\"}" +
+                "]" +
+            "}",
+            Airport.class
+        );
+
+        Mockito.when(
+            client.getForEntity(
+                contains("/airports/kbos"),
+                eq(Airport.class)
+            )
+        ).thenReturn(new ResponseEntity<>(airport, HttpStatus.OK));
+
+        mvc.perform(get("/airports/weather").param("id", "kbos"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("[0].id").value("KBOS"))
+            .andExpect(jsonPath("[0].weather.forecast").isEmpty());
+
+    }
+
 }

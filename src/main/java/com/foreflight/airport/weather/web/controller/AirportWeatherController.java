@@ -3,7 +3,6 @@ package com.foreflight.airport.weather.web.controller;
 import com.foreflight.airport.weather.service.AirportWeatherService;
 import com.foreflight.airport.weather.web.dto.AirportWeather;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -11,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/airports")
-@Validated
 public class AirportWeatherController {
 
     private final AirportWeatherService airportWeatherService;

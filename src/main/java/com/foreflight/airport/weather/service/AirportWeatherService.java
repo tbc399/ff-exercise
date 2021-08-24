@@ -7,13 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-// TODO: add more stuff to existing tests here to cover cloud coverage and period offsets
+
 @Service
 public class AirportWeatherService {
 
@@ -29,7 +28,6 @@ public class AirportWeatherService {
 
         List<AirportWeather> airportWeather = new ArrayList<>();
 
-        // TODO: maybe replace with stream
         for (String id : airportIds) {
 
             Airport airport = foreFlightApiService.getAirport(id);
@@ -61,21 +59,6 @@ public class AirportWeatherService {
             .collect(Collectors.toList());
 
         WeatherReport.CurrentConditions current = weatherReport.getReport().getConditions();
-        WeatherReport.Forecast forecast = weatherReport.getReport().getForecast();
-
-        LocalDateTime dateStart = forecast.getPeriod().getDateStart();
-
-        List<AirportWeather.Forecast> forecastWeather = forecast.getConditions().subList(1, 3)
-            .stream()
-            .map(weather -> new AirportWeather.Forecast(
-                Duration.between(dateStart, weather.getPeriod().getDateStart()),
-                weather.getTempC() != null ? Conversions.celsiusToFahrenheit(weather.getTempC()) : null,
-                new AirportWeather.ForecastWind(
-                    Conversions.knotsToMph(weather.getWind().getSpeedKts()),
-                    weather.getWind().getDirection()
-                )
-            ))
-            .collect(Collectors.toList());
 
         AirportWeather.Current airportWeatherCurrent = current == null ? null : new AirportWeather.Current(
             current.getTempC() != null ? Conversions.celsiusToFahrenheit(current.getTempC()) : null,
@@ -87,6 +70,37 @@ public class AirportWeatherService {
                 Conversions.degreesToCardinal(current.getWind().getDirection())
             )
         );
+
+        WeatherReport.Forecast forecast = weatherReport.getReport().getForecast();
+        List<AirportWeather.Forecast> forecastWeather = null;
+
+        if (forecast != null) {
+
+            List<WeatherReport.ForecastConditions> forecastConditions;
+            if (forecast.getConditions().size() > 1) {
+                forecastConditions = forecast.getConditions().subList(
+                    1,
+                    Math.min(3, forecast.getConditions().size())
+                );
+            } else {
+                forecastConditions = Collections.emptyList();
+            }
+
+            forecastWeather = forecastConditions.stream()
+                .map(weather -> new AirportWeather.Forecast(
+                    Duration.between(
+                        forecast.getPeriod().getDateStart(),
+                        weather.getPeriod().getDateStart()
+                    ),
+                    weather.getTempC() != null ? Conversions.celsiusToFahrenheit(weather.getTempC()) : null,
+                    new AirportWeather.ForecastWind(
+                        Conversions.knotsToMph(weather.getWind().getSpeedKts()),
+                        weather.getWind().getDirection()
+                    )
+                ))
+                .collect(Collectors.toList());
+
+        }
 
         return new AirportWeather(
             airport.getIcao(),

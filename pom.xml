@@ -8,11 +8,11 @@
 		<version>2.5.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.foreflight.airport</groupId>
+	<groupId>com.foreflight.airport.weather</groupId>
 	<artifactId>airport-weather</artifactId>
 	<version>0.0.1</version>
 	<name>airport-weather</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Interview Challenge</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>

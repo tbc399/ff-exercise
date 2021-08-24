@@ -7,13 +7,12 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// TODO: pros and cons to inner class vs regular classes
 public class WeatherReport {
 
     public static class Wind {
 
         private Double speedKts;
-        // TODO: look at this closely according to the spec
+
         private Integer direction;
 
         public Double getSpeedKts() {
